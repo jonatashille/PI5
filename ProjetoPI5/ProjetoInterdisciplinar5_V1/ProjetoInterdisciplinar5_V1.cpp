@@ -2,50 +2,45 @@
 //
 #include "stdafx.h"
 #include "sqlite3.h"
+#include "DataBase.h"
+#include "Query.h"
 
-/* argc = quantidade de colunas
-   argv = valores das colunas
-   azColName = identificador das colunas */
-static int callback(void *NotUsed, int argc, char **argv, char **azColName)
+using namespace std;
+
+int main()
 {
-   int i;
-   for(i=0; i<argc; i++)
-   {
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-   }
-   printf("\n");
-   return 0;
-}
+	DataBase db;
+	db.Abrir("banco_exemplo.sqlite");
+	Query q = db.ExecutaQuery("SELECT * FROM planets");
 
-int main(int argc, char **argv)
-{
-   sqlite3 *db;
-   char *zErrMsg = 0;
-   int rc;
+	for(int i=0;i < q.NumColunas();i++)
+	{
+		cout << q.ValorCampo(i) << endl;
+	}
 
-   /*if( argc!=3 )
-   {
-      fprintf(stderr, "Uso: %s DATABASE SQL-STATEMENT\n", argv[0]);
-      exit(1);
-   }
+	for(int i=0;i < q.NumColunas();i++)
+	{
+		cout << q.NomeCampo(i) << endl;
+	}
+	cout << q.ValorCampo("object") << endl;
+	q.ProximaLinha();
+	cout << q.ValorCampo("object") << endl;
+	q.ProximaLinha();
+	cout << q.ValorCampo("object") << endl;
+	q.ProximaLinha();
+	cout << q.ValorCampo("object") << endl;
+	q.ProximaLinha();
+	cout << q.ValorCampo("object") << endl;
+	q.ProximaLinha();
+	cout << q.ValorCampo("object") << endl;
+	q.ProximaLinha();
+	cout << q.ValorCampo("object") << endl;
+	q.ProximaLinha();
+	cout << q.ValorCampo("object") << endl;
+	q.ProximaLinha();
+	cout << q.ValorCampo("object") << endl;
+	q.ProximaLinha();
 
-   /* abre o database */
-   rc = sqlite3_open("banco_exemplo.sqlite", &db);
-   if( rc )
-   {
-      fprintf(stderr, "Nao foi possivel abrir: %s\n", sqlite3_errmsg(db));
-      sqlite3_close(db);
-      exit(1);
-   }
-
-   /* executa a SQL (para cada linha retornada, chama a funcao "callback") */
-   rc = sqlite3_exec(db, "SELECT * FROM planets", callback, 0, &zErrMsg);
-   if( rc!=SQLITE_OK )
-   {
-      fprintf(stderr, "SQL error: %s\n", zErrMsg);
-      sqlite3_free(zErrMsg);
-   }
-   sqlite3_close(db);
    return 0;
 }
 
