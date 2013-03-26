@@ -10,6 +10,13 @@ Query::Query(void)
 
 Query::~Query(void)
 {
+	try
+	{
+		Finalize();
+	}
+	catch (...)
+	{
+	}
 }
 
 Query::Query(sqlite3* pDB,
@@ -24,36 +31,36 @@ Query::Query(sqlite3* pDB,
 	mbOwnVM = bOwnVM;
 }
 
-int Query::NumColunas()
+int Query::NumColuns()
 {
-	//checkVM();
+	CheckVM();
 	return mnCols;
 }
 
-const char* Query::ValorCampo(int pnCampo)
+const char* Query::FieldValue(int nField)
 {
-	return (const char*)sqlite3_column_text(mpVM, pnCampo);
+	return (const char*)sqlite3_column_text(mpVM, nField);
 }
 
-const char* Query::ValorCampo(const char* pCampo)
+const char* Query::FieldValue(const char* sField)
 {
-	int nCampo = IndexCampo(pCampo);
-	return (const char*)sqlite3_column_text(mpVM, nCampo);
+	int nField = FieldIndex(sField);
+	return (const char*)sqlite3_column_text(mpVM, nField);
 }
 
-int Query::IndexCampo(const char* pCampo)
+int Query::FieldIndex(const char* sField)
 {
-	//checkVM();
+	CheckVM();
 
-	if (pCampo)
+	if (sField)
 	{
-		for (int nCampo = 0; nCampo < mnCols; nCampo++)
+		for (int nField = 0; nField < mnCols; nField++)
 		{
-			const char* nTemp = sqlite3_column_name(mpVM, nCampo);
+			const char* nTemp = sqlite3_column_name(mpVM, nField);
 
-			if (strcmp(pCampo, nTemp) == 0)
+			if (strcmp(sField, nTemp) == 0)
 			{
-				return nCampo;
+				return nField;
 			}
 		}
 	}
@@ -63,23 +70,23 @@ int Query::IndexCampo(const char* pCampo)
 							DONT_DELETE_MSG);*/
 }
 
-const char* Query::NomeCampo(int nColuna)
+const char* Query::FieldName(int nCol)
 {
-	//checkVM();
+	CheckVM();
 
-	if (nColuna < 0 || nColuna > mnCols-1)
+	if (nCol < 0 || nCol > mnCols-1)
 	{
 		/*throw CppSQLite3Exception(CPPSQLITE_ERROR,
 								"Invalid field index requested",
 								DONT_DELETE_MSG);*/
 	}
 
-	return sqlite3_column_name(mpVM, nColuna);
+	return sqlite3_column_name(mpVM, nCol);
 }
 
-void Query::ProximaLinha()
+void Query::NextLine()
 {
-	//checkVM();
+	CheckVM();
 
 	int nRet = sqlite3_step(mpVM);
 
@@ -96,10 +103,66 @@ void Query::ProximaLinha()
 	{
 		nRet = sqlite3_finalize(mpVM);
 		mpVM = 0;
-		const char* msgErro = sqlite3_errmsg(mpDB);
-		cout << msgErro << endl;
+		const char* sErrMsg = sqlite3_errmsg(mpDB);
+		cout << sErrMsg << endl;
 		/*throw CppSQLite3Exception(nRet,
 								(char*)szError,
+								DONT_DELETE_MSG);*/
+	}
+}
+
+bool Query::FieldIsNull(int nField)
+{
+	return (FieldDataType(nField) == SQLITE_NULL);
+}
+
+bool Query::FieldIsNull(const char* sField)
+{
+	int nField = FieldIndex(sField);
+	return (FieldDataType(nField) == SQLITE_NULL);
+}
+
+int Query::FieldDataType(int nField)
+{
+	CheckVM();
+
+	/*if (nCol < 0 || nCol > mnCols-1)
+	{
+		throw CppSQLite3Exception(CPPSQLITE_ERROR,
+								"Invalid field index requested",
+								DONT_DELETE_MSG);
+	}*/
+
+	return sqlite3_column_type(mpVM, nField);
+}
+
+bool Query::eof()
+{
+	CheckVM();
+	return mbEof;
+}
+
+void Query::Finalize()
+{
+	if (mpVM && mbOwnVM)
+	{
+		int nRet = sqlite3_finalize(mpVM);
+		mpVM = 0;
+		if (nRet != SQLITE_OK)
+		{
+			const char* sErrMsg = sqlite3_errmsg(mpDB);
+			cout << sErrMsg << endl;
+			//throw CppSQLite3Exception(nRet, (char*)szError, DONT_DELETE_MSG);
+		}
+	}
+}
+
+void Query::CheckVM()
+{
+	if (mpVM == 0)
+	{
+		/*throw CppSQLite3Exception(CPPSQLITE_ERROR,
+								"Null Virtual Machine pointer",
 								DONT_DELETE_MSG);*/
 	}
 }

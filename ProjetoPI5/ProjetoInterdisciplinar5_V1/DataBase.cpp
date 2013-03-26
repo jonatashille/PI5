@@ -4,18 +4,18 @@
 using namespace std;
 
 //Métodos Privados
-sqlite3_stmt* DataBase::Preparar(const char* pQuery)
+sqlite3_stmt* DataBase::Compile(const char* sQuery)
 {
-	CheckBD();
+	CheckDB();
 
 	const char* szTail=0;
 	sqlite3_stmt* pVM;
 
-	int rc = sqlite3_prepare_v2(mpDB, pQuery, -1, &pVM, &szTail);
+	int rc = sqlite3_prepare_v2(mpDB, sQuery, -1, &pVM, &szTail);
 
 	if (rc != SQLITE_OK)
 	{
-		const char* szError = sqlite3_errmsg(mpDB);
+		const char* sErrMsg = sqlite3_errmsg(mpDB);
 		/*throw CppSQLite3Exception(nRet,
 								(char*)szError,
 								DONT_DELETE_MSG);*/
@@ -32,20 +32,33 @@ DataBase::DataBase(void)
 
 DataBase::~DataBase(void)
 {
+	try
+	{
+		Close();
+	}
+	catch (...)
+	{
+	}
 }
 
-void DataBase::Abrir(char* pArquivo)
+DataBase& DataBase::operator=(const DataBase& db)
 {
-	int nRet = sqlite3_open(pArquivo, &mpDB);
+	this->mpDB = db.mpDB;
+	return *this;
+}
+
+void DataBase::Open(char* sFile)
+{
+	int nRet = sqlite3_open(sFile, &mpDB);
 
 	if (nRet != SQLITE_OK)
 	{
-		const char* szError = sqlite3_errmsg(mpDB);
+		const char* sErrMsg = sqlite3_errmsg(mpDB);
 		//throw CppSQLite3Exception(nRet, (char*)szError, DONT_DELETE_MSG);
 	}
 }
 
-void DataBase::Fechar()
+void DataBase::Close()
 {
 	if (mpDB)
 	{
@@ -63,7 +76,7 @@ void DataBase::Fechar()
 	}
 }
 
-void DataBase::CheckBD()
+void DataBase::CheckDB()
 {
 	if (!mpDB)
 	{
@@ -74,7 +87,7 @@ void DataBase::CheckBD()
 	}
 }
 
-bool DataBase::ExisteTabela(const char* pTabela)
+bool DataBase::TableExists(const char* sTabela)
 {
 	/*char szSQL[256];
 	sprintf(szSQL,
@@ -85,11 +98,11 @@ bool DataBase::ExisteTabela(const char* pTabela)
 	return true;
 }
 
-Query DataBase::ExecutaQuery(const char* pQuery)
+Query DataBase::ExecQuery(const char* sQuery)
 {
-	CheckBD();
+	CheckDB();
 
-	sqlite3_stmt* pVM = Preparar(pQuery);
+	sqlite3_stmt* pVM = Compile(sQuery);
 
 	int nRet = sqlite3_step(pVM);
 
@@ -106,8 +119,53 @@ Query DataBase::ExecutaQuery(const char* pQuery)
 	else
 	{
 		nRet = sqlite3_finalize(pVM);
-		const char* msgErro = sqlite3_errmsg(mpDB);
-		cout << msgErro << endl;
+		const char* sErrMsg = sqlite3_errmsg(mpDB);
+		cout << sErrMsg << endl;
 		//throw CppSQLite3Exception(nRet, (char*)szError, DONT_DELETE_MSG);
+	}
+}
+
+int DataBase::ExecDML(const char* sSQL)
+{
+	CheckDB();
+
+	char* szError=0;
+
+	int nRet = sqlite3_exec(mpDB, sSQL, 0, 0, &szError);
+
+	if (nRet == SQLITE_OK)
+	{
+		return sqlite3_changes(mpDB);
+	}
+	else
+	{
+		//throw CppSQLite3Exception(nRet, szError);
+	}
+}
+
+sqlite_int64 DataBase::LastRowId()
+{
+	return sqlite3_last_insert_rowid(mpDB);
+}
+
+Table DataBase::GetTable(const char* sQuery)
+{
+	CheckDB();
+
+	char* szError=0;
+	char** sResults=0;
+	int nRet;
+	int nRows(0);
+	int nCols(0);
+
+	nRet = sqlite3_get_table(mpDB, sQuery, &sResults, &nRows, &nCols, &szError);
+
+	if (nRet == SQLITE_OK)
+	{
+		return Table(sResults, nRows, nCols);
+	}
+	else
+	{
+		//throw CppSQLite3Exception(nRet, szError);
 	}
 }

@@ -14,12 +14,17 @@ public:
 		  sqlite3_stmt* pVM,
           bool bEof,
           bool bOwnVM=true);
-	int NumColunas();
-	const char* ValorCampo(int);
-	const char* ValorCampo(const char*);
-	const char* NomeCampo(int);
-	int IndexCampo(const char*);
-
-	void ProximaLinha();
+	int NumColuns();
+	const char* FieldValue(int);
+	const char* FieldValue(const char*);
+	const char* FieldName(int);
+	int FieldIndex(const char*);
+	void NextLine();
+	bool FieldIsNull(int);
+	bool FieldIsNull(const char*);
+	int FieldDataType(int);
+	bool eof();
+	void Finalize();
+	void CheckVM();
 };
 
