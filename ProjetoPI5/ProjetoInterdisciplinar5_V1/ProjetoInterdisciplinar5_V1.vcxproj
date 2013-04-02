@@ -80,15 +80,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataBase.h" />
+    <ClInclude Include="Menu.h" />
     <ClInclude Include="Query.h" />
     <ClInclude Include="sqlite3.h" />
+    <ClInclude Include="SQLiteException.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Table.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DataBase.cpp" />
+    <ClCompile Include="Menu.cpp" />
     <ClCompile Include="ProjetoInterdisciplinar5_V1.cpp" />
     <ClCompile Include="Query.cpp" />
+    <ClCompile Include="SQLiteException.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

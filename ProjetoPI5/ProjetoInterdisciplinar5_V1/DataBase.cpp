@@ -1,7 +1,10 @@
 #include "stdafx.h"
 #include "DataBase.h"
+#include "SQLiteException.h"
 
 using namespace std;
+
+static const bool DONT_DELETE_MSG=false;
 
 //Métodos Privados
 sqlite3_stmt* DataBase::Compile(const char* sQuery)
@@ -11,14 +14,14 @@ sqlite3_stmt* DataBase::Compile(const char* sQuery)
 	const char* szTail=0;
 	sqlite3_stmt* pVM;
 
-	int rc = sqlite3_prepare_v2(mpDB, sQuery, -1, &pVM, &szTail);
+	int nRet = sqlite3_prepare_v2(mpDB, sQuery, -1, &pVM, &szTail);
 
-	if (rc != SQLITE_OK)
+	if (nRet != SQLITE_OK)
 	{
-		const char* sErrMsg = sqlite3_errmsg(mpDB);
-		/*throw CppSQLite3Exception(nRet,
+		const char* szError = sqlite3_errmsg(mpDB);
+		throw SQLiteException(nRet,
 								(char*)szError,
-								DONT_DELETE_MSG);*/
+								DONT_DELETE_MSG);
 	}
 
 	return pVM;
@@ -53,8 +56,8 @@ void DataBase::Open(char* sFile)
 
 	if (nRet != SQLITE_OK)
 	{
-		const char* sErrMsg = sqlite3_errmsg(mpDB);
-		//throw CppSQLite3Exception(nRet, (char*)szError, DONT_DELETE_MSG);
+		const char* szError = sqlite3_errmsg(mpDB);
+		throw SQLiteException(nRet, (char*)szError, DONT_DELETE_MSG);
 	}
 }
 
@@ -68,10 +71,9 @@ void DataBase::Close()
 		}
 		else
 		{
-			cout << "Nao foi possivel fechar o banco de dados" << endl;
-			/*throw CppSQLite3Exception(CPPSQLITE_ERROR,
+			throw SQLiteException(1,
 									"Unable to close database",
-									DONT_DELETE_MSG);*/
+									DONT_DELETE_MSG);
 		}
 	}
 }
@@ -80,10 +82,9 @@ void DataBase::CheckDB()
 {
 	if (!mpDB)
 	{
-		cout << "O banco de dados nao esta aberto" << endl;
-		/*throw CppSQLite3Exception(CPPSQLITE_ERROR,
+		throw SQLiteException(1,
 								"Database not open",
-								DONT_DELETE_MSG);*/
+								DONT_DELETE_MSG);
 	}
 }
 
@@ -92,7 +93,7 @@ bool DataBase::TableExists(const char* sTabela)
 	/*char szSQL[256];
 	sprintf(szSQL,
 			"select count(*) from sqlite_master where type='table' and name='%s'",
-			szTable);
+			sTabela);
 	int nRet = execScalar(szSQL);
 	return (nRet > 0);*/
 	return true;
@@ -119,9 +120,8 @@ Query DataBase::ExecQuery(const char* sQuery)
 	else
 	{
 		nRet = sqlite3_finalize(pVM);
-		const char* sErrMsg = sqlite3_errmsg(mpDB);
-		cout << sErrMsg << endl;
-		//throw CppSQLite3Exception(nRet, (char*)szError, DONT_DELETE_MSG);
+		const char* szError = sqlite3_errmsg(mpDB);
+		throw SQLiteException(nRet, (char*)szError, DONT_DELETE_MSG);
 	}
 }
 
@@ -139,7 +139,7 @@ int DataBase::ExecDML(const char* sSQL)
 	}
 	else
 	{
-		//throw CppSQLite3Exception(nRet, szError);
+		throw SQLiteException(nRet, szError);
 	}
 }
 
@@ -166,6 +166,7 @@ Table DataBase::GetTable(const char* sQuery)
 	}
 	else
 	{
-		//throw CppSQLite3Exception(nRet, szError);
+		throw SQLiteException(nRet, szError);
 	}
 }
+

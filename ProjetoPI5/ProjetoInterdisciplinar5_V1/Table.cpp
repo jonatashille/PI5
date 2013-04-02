@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Table.h"
 
-
 Table::Table(void)
 {
 	msResults = 0;
@@ -134,4 +133,26 @@ void Table::CheckResults()
 								"Null Results pointer",
 								DONT_DELETE_MSG);*/
 	}
+}
+
+string Table::PrintFieldName(Table& t, int& nCol)
+{
+	stringstream ss;
+	string s;
+	ss.width(15); 
+	s = t.FieldName(nCol);
+	s.resize(15);
+	ss << s << "|";
+	return ss.str();
+}
+
+string Table::PrintFieldValue(Table& t, int& nCol)
+{
+	stringstream ss;
+	string s;
+	ss.width(15); 
+	s = t.FieldValue(nCol);
+	s.resize(15);
+	ss << s << "|";
+	return ss.str();
 }

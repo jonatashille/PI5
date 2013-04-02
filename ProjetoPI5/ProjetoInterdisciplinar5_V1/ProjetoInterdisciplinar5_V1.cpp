@@ -5,63 +5,50 @@
 #include "DataBase.h"
 #include "Query.h"
 #include "Table.h"
+#include "SQLiteException.h"
 
 using namespace std;
 
 int main()
 {
-	DataBase db;
-	db.Open("banco_exemplo.sqlite");
-
-    Table t = db.GetTable("SELECT * FROM planets;");
-
-    for (int fld = 0; fld < t.NumFields(); fld++)
-    {
-        cout << t.FieldName(fld) << "|";
-    }
-    cout << endl;
-    for (int row = 0; row < t.NumRows(); row++)
-    {
-        t.SetRow(row);
-        for (int fld = 0; fld < t.NumFields(); fld++)
-        {
-            if (!t.FieldIsNull(fld))
-                cout << t.FieldValue(fld) << "|";
-            else
-                cout << "NULL" << "|";
-        }
-        cout << endl;
-    }
-
-	/*Query q = db.ExecQuery("SELECT * FROM planets");
-
-	for(int i=0;i < q.NumColuns();i++)
+	string sql;
+	try
 	{
-		cout << q.FieldValue(i) << endl;
-	}
+		DataBase db;
+		db.Open("banco_exemplo.sqlite");
 
-	for(int i=0;i < q.NumColuns();i++)
-	{
-		cout << q.FieldName(i) << endl;
+		cout << "Digite o script:" << endl;
+		getline(cin,sql);
+
+		Table t = db.GetTable(sql.c_str());
+
+		for (int fld = 0; fld < t.NumFields(); fld++)
+		{
+			cout << t.PrintFieldName(t, fld);
+		}
+		cout << endl;
+		for (int fld = 0; fld < t.NumFields(); fld++)
+		{
+			cout << setw(20) << "---------------------";
+		}
+		cout << endl;
+		for (int row = 0; row < t.NumRows(); row++)
+		{
+			t.SetRow(row);
+			for (int fld = 0; fld < t.NumFields(); fld++)
+			{
+				if (!t.FieldIsNull(fld))
+					cout << t.PrintFieldValue(t, fld);
+				else
+					cout << "NULL" << "|";
+			}
+			cout << endl;
+		}
 	}
-	cout << q.FieldValue("object") << endl;
-	q.NextLine();
-	cout << q.FieldValue("object") << endl;
-	q.NextLine();
-	cout << q.FieldValue("object") << endl;
-	q.NextLine();
-	cout << q.FieldValue("object") << endl;
-	q.NextLine();
-	cout << q.FieldValue("object") << endl;
-	q.NextLine();
-	cout << q.FieldValue("object") << endl;
-	q.NextLine();
-	cout << q.FieldValue("object") << endl;
-	q.NextLine();
-	cout << q.FieldValue("object") << endl;
-	q.NextLine();
-	cout << q.FieldValue("object") << endl;
-	q.NextLine();*/
+	catch(SQLiteException& e)
+	{
+		cerr << e.errorCode() << ":" << e.errorMessage() << endl;
+	}
 
    return 0;
 }

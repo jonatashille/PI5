@@ -1,4 +1,8 @@
 #pragma once
+#include "stdafx.h"
+
+using namespace std;
+
 class Table
 {
 private:
@@ -25,5 +29,8 @@ public:
 	bool FieldIsNull(const char*);
 
 	void SetRow(int);
+
+	string PrintFieldName(Table&, int&); 
+	string PrintFieldValue(Table&, int&); 
 };
 

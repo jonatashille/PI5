@@ -1,7 +1,10 @@
 #include "stdafx.h"
 #include "Query.h"
+#include "SQLiteException.h"
 
 using namespace std;
+
+static const bool DONT_DELETE_MSG=false;
 
 Query::Query(void)
 {
@@ -65,9 +68,9 @@ int Query::FieldIndex(const char* sField)
 		}
 	}
 
-	/*throw CppSQLite3Exception(CPPSQLITE_ERROR,
+	throw SQLiteException(1,
 							"Invalid field name requested",
-							DONT_DELETE_MSG);*/
+							DONT_DELETE_MSG);
 }
 
 const char* Query::FieldName(int nCol)
@@ -76,9 +79,9 @@ const char* Query::FieldName(int nCol)
 
 	if (nCol < 0 || nCol > mnCols-1)
 	{
-		/*throw CppSQLite3Exception(CPPSQLITE_ERROR,
+		throw SQLiteException(1,
 								"Invalid field index requested",
-								DONT_DELETE_MSG);*/
+								DONT_DELETE_MSG);
 	}
 
 	return sqlite3_column_name(mpVM, nCol);
@@ -103,11 +106,10 @@ void Query::NextLine()
 	{
 		nRet = sqlite3_finalize(mpVM);
 		mpVM = 0;
-		const char* sErrMsg = sqlite3_errmsg(mpDB);
-		cout << sErrMsg << endl;
-		/*throw CppSQLite3Exception(nRet,
+		const char* szError = sqlite3_errmsg(mpDB);
+		throw SQLiteException(nRet,
 								(char*)szError,
-								DONT_DELETE_MSG);*/
+								DONT_DELETE_MSG);
 	}
 }
 
@@ -122,18 +124,18 @@ bool Query::FieldIsNull(const char* sField)
 	return (FieldDataType(nField) == SQLITE_NULL);
 }
 
-int Query::FieldDataType(int nField)
+int Query::FieldDataType(int nCol)
 {
 	CheckVM();
 
-	/*if (nCol < 0 || nCol > mnCols-1)
+	if (nCol < 0 || nCol > mnCols-1)
 	{
-		throw CppSQLite3Exception(CPPSQLITE_ERROR,
+		throw SQLiteException(1,
 								"Invalid field index requested",
 								DONT_DELETE_MSG);
-	}*/
+	}
 
-	return sqlite3_column_type(mpVM, nField);
+	return sqlite3_column_type(mpVM, nCol);
 }
 
 bool Query::eof()
@@ -150,9 +152,8 @@ void Query::Finalize()
 		mpVM = 0;
 		if (nRet != SQLITE_OK)
 		{
-			const char* sErrMsg = sqlite3_errmsg(mpDB);
-			cout << sErrMsg << endl;
-			//throw CppSQLite3Exception(nRet, (char*)szError, DONT_DELETE_MSG);
+			const char* szError = sqlite3_errmsg(mpDB);
+			throw SQLiteException(nRet, (char*)szError, DONT_DELETE_MSG);
 		}
 	}
 }
@@ -161,8 +162,8 @@ void Query::CheckVM()
 {
 	if (mpVM == 0)
 	{
-		/*throw CppSQLite3Exception(CPPSQLITE_ERROR,
+		throw SQLiteException(1,
 								"Null Virtual Machine pointer",
-								DONT_DELETE_MSG);*/
+								DONT_DELETE_MSG);
 	}
 }
